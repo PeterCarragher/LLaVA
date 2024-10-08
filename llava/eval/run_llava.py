@@ -23,12 +23,23 @@ import requests
 from PIL import Image
 from io import BytesIO
 import re
+import base64
 
 
 def image_parser(args):
     out = args.image_file.split(args.sep)
     return out
 
+with open("/home/pcarragh/dev/webqa/UniVL-DR/data/imgs.lineidx", "r") as fp_lineidx:
+    lineidx = [int(i.strip()) for i in fp_lineidx.readlines()]
+
+def read_webqa_image(image_id, lineidx=lineidx):
+    with open("/home/pcarragh/dev/webqa/UniVL-DR/data/imgs.tsv", "r") as fp:
+        fp.seek(lineidx[int(image_id)%10000000])
+        imgid, img_base64 = fp.readline().strip().split('\t')
+    assert int(image_id) == int(imgid), f'{image_id} {imgid}'
+    im = Image.open(BytesIO(base64.b64decode(img_base64)))
+    return im
 
 def load_image(image_file):
     if image_file.startswith("http") or image_file.startswith("https"):
@@ -42,7 +53,7 @@ def load_image(image_file):
 def load_images(image_files):
     out = []
     for image_file in image_files:
-        image = load_image(image_file)
+        image = read_webqa_image(image_file)
         out.append(image)
     return out
 
@@ -125,7 +136,8 @@ def eval_model(args):
         )
 
     outputs = tokenizer.batch_decode(output_ids, skip_special_tokens=True)[0].strip()
-    print(outputs)
+    # print(outputs)
+    return outputs
 
 
 if __name__ == "__main__":
