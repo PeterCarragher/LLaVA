@@ -61,15 +61,7 @@ def load_images(image_files, webqa=False):
     return out
 
 
-def eval_model(args):
-    # Model
-    disable_torch_init()
-
-    model_name = get_model_name_from_path(args.model_path)
-    tokenizer, model, image_processor, context_len = load_pretrained_model(
-        args.model_path, args.model_base, model_name
-    )
-
+def eval(tokenizer, model, image_processor, args):
     qs = args.query
     image_token_se = DEFAULT_IM_START_TOKEN + DEFAULT_IMAGE_TOKEN + DEFAULT_IM_END_TOKEN
     if IMAGE_PLACEHOLDER in qs:
@@ -83,6 +75,7 @@ def eval_model(args):
         else:
             qs = DEFAULT_IMAGE_TOKEN + "\n" + qs
 
+    model_name = get_model_name_from_path(args.model_path)
     if "llama-2" in model_name.lower():
         conv_mode = "llava_llama_2"
     elif "mistral" in model_name.lower():
@@ -142,6 +135,17 @@ def eval_model(args):
     # print(outputs)
     return outputs
 
+
+def eval_model(args):
+    # Model
+    disable_torch_init()
+
+    model_name = get_model_name_from_path(args.model_path)
+    tokenizer, model, image_processor, context_len = load_pretrained_model(
+        args.model_path, args.model_base, model_name
+    )
+
+    return eval(tokenizer, model, image_processor, args)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
