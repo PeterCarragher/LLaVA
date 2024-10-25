@@ -50,10 +50,14 @@ def load_image(image_file):
     return image
 
 
-def load_images(image_files, webqa=False):
+def load_images(image_files):
     out = []
     for image_file in image_files:
-        if webqa:
+        try:
+            image_path_int = int(image_file)
+        except:
+            image_path_int = None
+        if image_path_int:
             image = read_webqa_image(image_file)
         else:
             image = load_image(image_file)
@@ -104,7 +108,7 @@ def eval(tokenizer, model, image_processor, args):
     prompt = conv.get_prompt()
 
     image_files = image_parser(args)
-    images = load_images(image_files, args.webqa)
+    images = load_images(image_files)
     image_sizes = [x.size for x in images]
     images_tensor = process_images(
         images,
